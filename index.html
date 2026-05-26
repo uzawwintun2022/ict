@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Quiz</title>
+    <title>Interactive Quiz with Reset</title>
     <style>
         *, *::before, *::after {
             box-sizing: border-box;
@@ -29,6 +29,8 @@
             body { padding: 10px; }
             .quiz-container { padding: 20px 15px; }
             h1 { font-size: 1.5rem; }
+            .btn-group { flex-direction: column; gap: 10px; }
+            .btn { width: 100% !important; }
         }
         h1 {
             text-align: center;
@@ -94,24 +96,36 @@
             border-color: #4ade80;
             color: #166534;
         }
-        .btn-container {
+        .btn-group {
             margin-top: 30px;
-            text-align: center;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
         }
-        .submit-btn {
-            background-color: #2563eb;
-            color: #ffffff;
-            border: none;
+        .btn {
             padding: 14px 32px;
             font-size: 1.1rem;
             font-weight: 600;
             border-radius: 8px;
             cursor: pointer;
-            width: 100%;
+            border: none;
             transition: background-color 0.2s ease;
+        }
+        .submit-btn {
+            background-color: #2563eb;
+            color: #ffffff;
+            width: 65%;
         }
         .submit-btn:hover {
             background-color: #1d4ed8;
+        }
+        .reset-btn {
+            background-color: #64748b;
+            color: #ffffff;
+            width: 35%;
+        }
+        .reset-btn:hover {
+            background-color: #475569;
         }
         .result-dashboard {
             display: none;
@@ -314,8 +328,9 @@
             </div>
         </div>
 
-        <div class="btn-container">
-            <button type="submit" class="submit-btn" id="submitBtn">Submit Answers</button>
+        <div class="btn-group">
+            <button type="submit" class="btn submit-btn" id="submitBtn">Submit Answers</button>
+            <button type="button" class="btn reset-btn" id="resetBtn">Reset Quiz</button>
         </div>
     </form>
 
@@ -325,7 +340,13 @@
 </div>
 
 <script>
-    document.getElementById('quizForm').addEventListener('submit', function(e) {
+    const form = document.getElementById('quizForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const dashboard = document.getElementById('resultDashboard');
+    const scoreText = document.getElementById('scoreText');
+
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
         
         const blocks = document.querySelectorAll('.question-block');
@@ -337,10 +358,9 @@
             const selectedInput = block.querySelector('input[type="radio"]:checked');
             const options = block.querySelectorAll('.option-label');
 
-            // Reset classes
             options.forEach(label => {
                 label.classList.remove('correct-selected', 'incorrect-selected', 'correct-unselected');
-                label.querySelector('input').disabled = true; // disable options after submission
+                label.querySelector('input').disabled = true;
             });
 
             if (selectedInput) {
@@ -350,7 +370,6 @@
                     selectedInput.parentElement.classList.add('correct-selected');
                 } else {
                     selectedInput.parentElement.classList.add('incorrect-selected');
-                    // highlight the right answer
                     options.forEach(label => {
                         if (label.querySelector('input').value === correctAnswer) {
                             label.classList.add('correct-unselected');
@@ -358,7 +377,6 @@
                     });
                 }
             } else {
-                // If no answer selected, highlight the correct one
                 options.forEach(label => {
                     if (label.querySelector('input').value === correctAnswer) {
                         label.classList.add('correct-unselected');
@@ -367,16 +385,31 @@
             }
         });
 
-        // Show score dashboard
-        const dashboard = document.getElementById('resultDashboard');
-        const scoreText = document.getElementById('scoreText');
         scoreText.textContent = `Your Score: ${score} / ${total} (${Math.round((score/total)*100)}%)`;
         dashboard.style.display = 'block';
-        
-        // Scroll to dashboard
         dashboard.scrollIntoView({ behavior: 'smooth' });
-        document.getElementById('submitBtn').disabled = true;
-        document.getElementById('submitBtn').style.backgroundColor = '#94a3b8';
+        
+        submitBtn.disabled = true;
+        submitBtn.style.backgroundColor = '#94a3b8';
+    });
+
+    resetBtn.addEventListener('click', function() {
+        form.reset();
+        
+        const blocks = document.querySelectorAll('.question-block');
+        blocks.forEach(block => {
+            const options = block.querySelectorAll('.option-label');
+            options.forEach(label => {
+                label.classList.remove('correct-selected', 'incorrect-selected', 'correct-unselected');
+                const input = label.querySelector('input');
+                input.disabled = false;
+            });
+        });
+
+        dashboard.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.style.backgroundColor = '#2563eb';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 </script>
 
